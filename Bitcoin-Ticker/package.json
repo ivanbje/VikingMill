@@ -4,7 +4,7 @@
   "description": "A practice bitcoin ticker via Angela",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js"
   },
   "author": "Markus",
   "license": "ISC",

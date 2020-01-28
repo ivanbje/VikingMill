@@ -42,6 +42,7 @@ app.post("/", function(req, res) {
   });
 });
 
-app.listen(3000, function() {
-  console.log("Server is running on port 3000.");
+const server = app.listen(8080, () => {
+  const host = server.address().address;
+  const port = server.address().port;
 });
