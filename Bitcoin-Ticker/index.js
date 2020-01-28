@@ -29,17 +29,24 @@ app.post("/", function(req, res) {
       amount: amount,
     },
   };
+});
 
-  request(options, function(error, response, body) {
-    var data = JSON.parse(body);
-    var price = data.price;
-    var currentDate = data.time;
+app.post("/login", function(req, res) {
+  var username = req.body.username;
+  var password = req.body.password;
 
-    res.write("<p>The current date is " + currentDate + "</p>");
-    res.write("<h1>" + amount + " " + crypto + " is currently worth " + price + " " + fiat + "</h1>")
+  res.setHeader("Content-Type", "application/json");
+  // TODO: Check userdetails
 
-    res.send();
-  });
+  // TODO: Send error if wrong
+
+  // TODO: Create Session-id
+
+  // TODO: insert session id in database
+
+  res.json({'session':'gae4$Y%%hwghw'});
+
+  res.send();
 });
 
 app.listen(3000, function() {
