@@ -3,18 +3,16 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const request = require("request");
-const { Client } = require('pg');
-const connectionString = 'postgres://postgres:postgres@localhost:5432/database';
 
-const client = new Client({
-    connectionString: connectionString
-});
 
 const app = express();
+
+
 
 app.use(bodyParser.urlencoded({
 	extended: true
 }));
+app.use(bodyParser.json());
 
 // const millBoard = matrix(3,3);
 //
@@ -89,29 +87,12 @@ app.post("/", function(req, res) {
 app.post("/login", function(req, res) {
 	var username = req.body.username;
 	var password = req.body.password;
+  console.log(req.body)
 
-	res.setHeader("Content-Type", "application/json");
-
-	client.connect();
-
-	client.query('SELECT * FROM Employee where id = $1', [1], function (err, result) 
-	{
-		if (err) {
-				console.log(err);
-				res.status(400).send(err);
-		}
-		// TODO: Check userdetails
-
-		// TODO: Send error if wrong
-
-		// TODO: Create Session-id
-
-		// TODO: insert session id in database
-
-		res.json(result.rows);
-
-		res.send();
-	});
+  res.json({
+    'username': username,
+    'password': password
+  })
 });
 
 
