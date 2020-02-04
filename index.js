@@ -26,17 +26,6 @@ app.use(bodyParser.urlencoded({
 }));
 app.use(bodyParser.json());
 
-// const millBoard = matrix(3,3);
-//
-// function matrix(m, n) {
-//   return Array.from({
-//     // generate array of length m
-//     length: m
-//     // inside map function generate array of size n
-//     // and fill it with `0`
-//   }, () => new Array(n).fill(0));
-// };
-
 const millBoard = {
 	// "gamestate": [0, 1, 2,
 	//               3, 4, 5,
@@ -63,38 +52,55 @@ function makeMove(player, row, col) {
 	}
 };
 
-// function makeMove(player, row, col) {
-//   if (player === 1) {
-//     millBoard[row][col] = 1;
-//   } else if (player === 2) {
-//     millBoard[row][col] = 2;
-//   } else {
-//     throw "Invalid player! player = " + player;
-//   }
-// };
-
 function printBoard() {
 	console.log(millBoard.gamestate.slice(0,3));
 	console.log(millBoard.gamestate.slice(3,6));
 	console.log(millBoard.gamestate.slice(6,9));
 };
 
-// printBoard();
 makeMove(2, 2, 0);
 printBoard();
 
 var myJSON = JSON.stringify(millBoard);
-console.log("asdf");
-console.log(myJSON);
-console.log("asdf");
 
 app.get("/", function(req, res) {
 	res.sendFile(__dirname + "/index.html");
 });
 
-app.post("/", function(req, res) {
+
+//game-id = 1 til að byrja með
+app.get("/mill/id/:gameId", function(req, res) {
+  console.log(printBoard());
+});
+
+
+
+
+// app.get("/mill/row/:row/col/:col", function(req, res) {
+//   console.log("row: "+ req.params.row);
+//   console.log("col: "+ req.params.col);
+// // });
+
+app.post("/mill", function(req, res) {
+  res.setHeader("Content-Type", "application/json");
+
+  console.log("row: "+ req.body.row);
+  console.log("col: "+ req.body.col);
+  console.log(req.body);
+
+  res.json({
+    'session': 'gae4$Y%%hwghw',
+    'row': "1",
+    'col': req.body.col,
+  });
+
+  res.send();
+});
+
+app.post("/makemove", function(req,res) {
 
 });
+
 
 app.post("/login", function(req, res) {
 	var username = req.body.username;
