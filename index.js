@@ -3,7 +3,19 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const request = require("request");
+const { Pool,Client} = require('pg')
+const connectionString = 'postgressql://vikingapp:ivanmarkus123@34.76.50.221:5432/viking-db'
 
+const client = new Client({
+  connectionString:connectionString
+})
+
+client.connect()
+
+client.query('select * from games', (err,res)=>{
+  console.log(err,res)
+  client.end()
+})
 
 const app = express();
 
