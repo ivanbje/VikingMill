@@ -4,6 +4,13 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const request = require("request");
 
+const { Client } = require('pg');
+const connectionString = 'postgres://postgres:postgres@localhost:5432/database';
+
+const client = new Client({
+    connectionString: connectionString
+});
+
 const app = express();
 
 
@@ -39,6 +46,14 @@ app.post("/login", function(req, res) {
   var password = req.body.password;
 
   res.setHeader("Content-Type", "application/json");
+
+  client.query('SELECT * FROM Employee where id = $1', [1], function (err, result) {
+        if (err) {
+            console.log(err);
+            res.status(400).send(err);
+        }
+
+  client.connect();
   // TODO: Check userdetails
 
   // TODO: Send error if wrong
@@ -47,7 +62,7 @@ app.post("/login", function(req, res) {
 
   // TODO: insert session id in database
 
-  res.json({'session':'gae4$Y%%hwghw'});
+  res.json(result.rows;
 
   res.send();
 });
