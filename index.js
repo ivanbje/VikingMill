@@ -3,11 +3,13 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const request = require("request");
+const { Client } = require('pg');
+const connectionString = 'postgres://postgres:postgres@localhost:5432/database';
 
 const app = express();
 
 app.use(bodyParser.urlencoded({
-  extended: true
+	extended: true
 }));
 
 // const millBoard = matrix(3,3);
@@ -22,29 +24,29 @@ app.use(bodyParser.urlencoded({
 // };
 
 const millBoard = {
-  // "gamestate": [0, 1, 2,
-  //               3, 4, 5,
-  //               6, 7, 8],
-  "gamestate": [0, 0, 0,
-                0, 0, 0,
-                0, 0, 0],
+	// "gamestate": [0, 1, 2,
+	//               3, 4, 5,
+	//               6, 7, 8],
+	"gamestate": [0, 0, 0,
+								0, 0, 0,
+								0, 0, 0],
 };
 
 function RowColToOneDimensional(row,col) {
-  var i = row*3 + col;
-  return i;
+	var i = row*3 + col;
+	return i;
 };
 
 function makeMove(player, row, col) {
-  const index = RowColToOneDimensional(row,col);
+	const index = RowColToOneDimensional(row,col);
 
-  if (player === 1) {
-    millBoard.gamestate[index] = 1;
-  } else if (player === 2) {
-    millBoard.gamestate[index] = 2;
-  } else {
-    throw "Invalid player! player = " + player;
-  }
+	if (player === 1) {
+		millBoard.gamestate[index] = 1;
+	} else if (player === 2) {
+		millBoard.gamestate[index] = 2;
+	} else {
+		throw "Invalid player! player = " + player;
+	}
 };
 
 // function makeMove(player, row, col) {
@@ -58,9 +60,9 @@ function makeMove(player, row, col) {
 // };
 
 function printBoard() {
-  console.log(millBoard.gamestate.slice(0,3));
-  console.log(millBoard.gamestate.slice(3,6));
-  console.log(millBoard.gamestate.slice(6,9));
+	console.log(millBoard.gamestate.slice(0,3));
+	console.log(millBoard.gamestate.slice(3,6));
+	console.log(millBoard.gamestate.slice(6,9));
 };
 
 // printBoard();
@@ -73,7 +75,7 @@ console.log(myJSON);
 console.log("asdf");
 
 app.get("/", function(req, res) {
-  res.sendFile(__dirname + "/index.html");
+	res.sendFile(__dirname + "/index.html");
 });
 
 app.post("/", function(req, res) {
@@ -81,28 +83,36 @@ app.post("/", function(req, res) {
 });
 
 app.post("/login", function(req, res) {
-  var username = req.body.username;
-  var password = req.body.password;
+	var username = req.body.username;
+	var password = req.body.password;
 
-  res.setHeader("Content-Type", "application/json");
-  // TODO: Check userdetails
+	res.setHeader("Content-Type", "application/json");
 
-  // TODO: Send error if wrong
+	client.connect();
 
-  // TODO: Create Session-id
+	client.query('SELECT * FROM Employee where id = $1', [1], function (err, result) 
+	{
+		if (err) {
+				console.log(err);
+				res.status(400).send(err);
+		}
+		// TODO: Check userdetails
 
-  // TODO: insert session id in database
+		// TODO: Send error if wrong
 
-  res.json({
-    'session': 'gae4$Y%%hwghw'
-  });
+		// TODO: Create Session-id
 
-  res.send();
+		// TODO: insert session id in database
+
+		res.json(result.rows);
+
+		res.send();
+	});
 });
 
 
 app.listen(3000, function() {
-  console.log("Server started on port 3000");
+	console.log("Server started on port 3000");
 });
 
 // const server = app.listen(8080, () => {
