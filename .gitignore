@@ -1,3 +1,5 @@
-Bitcoin-Ticker/node_modules
-node_modules
+/node_modules
 nodemon.json
+npm-debug.log
+.DS_Store
+/*.env
