@@ -42,7 +42,7 @@ app.use(function (req, res, next) {
 //<website-name>/mill/id/:gid
 //<website-name>/mill/id/:gid/player/:pid/makemove
 
-app.use("/mill", millsRoutes);
+app.use("/api/mill", millsRoutes);
 
 // app.post("/login", function (req, res) {
 //   var username = req.body.username;

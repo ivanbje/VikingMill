@@ -3,62 +3,19 @@ const Game = require("../models/game");
 const { v4: uuidv4 } = require("uuid");
 
 //////////////////////////////////////////////////////////////
-//////////////////////////The Board///////////////////////////
-//////////////////////////////////////////////////////////////
-// const allGames = [];
-// const allGameIds = [];
-
-// class MillBoard {
-//   static currentId = 0;
-//   _id = ++MillBoard.currentId;
-
-//   constructor() {
-//     this.gamestate = [0, 0, 0, 0, 0, 0, 0, 0, 0];
-//     this.nextPlayer = 1;
-//     this.isOver = false;
-//   }
-
-//   get id() {
-//     return this._id;
-//   }
-
-//   getRow_i(i) {
-//     if (i < 0 || i > 2) {
-//       const error = new HttpError(
-//         "Something went wrong, could not find recipes.",
-//         500
-//       );
-//       return next(error);
-//     }
-//     return this.gamestate.slice(i * 3, i * 3 + 3);
-//   }
-
-//   printBoard() {
-//     console.log("Player " + this.nextPlayer + "'s turn.");
-//     console.log(this.getRow_i(0));
-//     console.log(this.getRow_i(1));
-//     console.log(this.getRow_i(2));
-//   }
-
-//   updateBoard(row, col) {
-//     const index = RowColToOneDimensional(row, col);
-
-//     if (this.nextPlayer === 1) {
-//       this.gamestate[index] = 1;
-//       this.nextPlayer = 2;
-//     } else if (this.nextPlayer === 2) {
-//       this.gamestate[index] = 2;
-//       this.nextPlayer = 1;
-//     }
-//   }
-// }
-
-//////////////////////////////////////////////////////////////
 ///////////////////////Helper functions///////////////////////
 //////////////////////////////////////////////////////////////
 function RowColToOneDimensional(row, col) {
   var i = row * 3 + col;
   return i;
+}
+
+function isLegal(a, row, col) {
+  if (row < 0 || row > 2) return false;
+  if (col < 0 || col > 2) return false;
+
+  const i = RowColToOneDimensional(row, col);
+  return a[i] === 0;
 }
 
 function updateBoard(boardArray, player1next, row, col) {
@@ -70,13 +27,66 @@ function updateBoard(boardArray, player1next, row, col) {
     boardArray[index] = 2;
   }
 }
+
+function isGameOver(a) {
+  function player_i_hasWon(i, a) {
+    //a = [0, 1, 2,
+    //     3, 4, 5,
+    //     6, 7, 8]
+    //i is either 1 or 2
+
+    if (a[0] === i && a[1] === i && a[2] === i) return i;
+    if (a[3] === i && a[4] === i && a[5] === i) return i;
+    if (a[6] === i && a[7] === i && a[8] === i) return i;
+
+    if (a[0] === i && a[3] === i && a[6] === i) return i;
+    if (a[1] === i && a[4] === i && a[7] === i) return i;
+    if (a[2] === i && a[5] === i && a[8] === i) return i;
+
+    if (a[0] === i && a[4] === i && a[8] === i) return i;
+    if (a[2] === i && a[4] === i && a[6] === i) return i;
+
+    return null;
+  }
+
+  const p1 = player_i_hasWon(1, a);
+  const p2 = player_i_hasWon(2, a);
+
+  if (p1) return p1;
+  return p2;
+}
+
 //////////////////////////////////////////////////////////////
 ////////////////////////Route handlers////////////////////////
 //////////////////////////////////////////////////////////////
-const home = (req, res, next) => {
-  res.json({
-    message: `Welcome to the home page for ${process.env.gameName}!`,
-  });
+const allGames = async (req, res, next) => {
+  let games;
+
+  try {
+    games = await Game.find();
+  } catch {
+    const error = new HttpError(
+      "Something went wrong, could not look up games.",
+      500
+    );
+    return next(error);
+  }
+
+  if (!games) {
+    const error = new HttpError(
+      `There are currently no active games of ${process.env.gameName}.`,
+      404
+    );
+    return next(error);
+  }
+  //res.status(200).json({ game: game.toObject({ getters: true }) });
+  //places: places.map(place => place.toObject({ getters: true }))
+  res
+    .status(200)
+    .json({ games: games.map((game) => game.toObject({ getters: true })) });
+  // res.json({
+  //   games: games,
+  // });
 };
 
 const newGame = async (req, res, next) => {
@@ -126,6 +136,13 @@ const getGameById = async (req, res, next) => {
     return next(error);
   }
 
+  //Check if the game is over
+  const winner = isGameOver(game.tiles);
+  if (winner) {
+    res.status(200).json({ message: "This game is over" });
+    return;
+  }
+
   res.json({ game });
 
   //// TODO:
@@ -139,10 +156,9 @@ const makeMove = async (req, res, next) => {
 
   const { row, col } = req.body;
 
-  //Sami kóði og í getGameById. Skoða best practice í að endurnýta
   try {
     game = await Game.findById(gameId);
-  } catch(err) {
+  } catch (err) {
     const error = new HttpError(
       "Something went wrong, could not update game.",
       500
@@ -157,23 +173,37 @@ const makeMove = async (req, res, next) => {
     );
     return next(error);
   }
-  //getGameById endar hér
+
+  const board = game.tiles.slice();
+
+  //Check if the game is over
+  const winner = isGameOver(board);
+  if (winner) {
+    res
+      .status(404)
+      .json({ message: "This game is over. You can't make any more moves" });
+    return;
+  }
 
   //make sure it's the correct players turn
   const player1next = game.player1next;
-
-  if ( (player1next && !(playerId === game.player1)) || (!player1next && !(playerId === game.player2)) ){
-    // const error = new HttpError(
-    //   "IT'S NOT YOUR TURN! WAIT UP",
-    //   404
-    // );
-    // return next(error);
+  if (
+    (player1next && !(playerId === game.player1)) ||
+    (!player1next && !(playerId === game.player2))
+  ) {
     res.status(404).json({ message: "EASY TIGER! IT'S NOT YOUR TURN!" });
     return;
   }
- 
-  //Make a copy of the board and mark the player's move
-  const board = game.tiles.slice();
+
+  //Check if the player selected an available action
+  if (!isLegal(board, row, col)) {
+    res.status(404).json({
+      message: "This is not an available action. Please select something else.",
+    });
+    return;
+  }
+
+  //Mark the players move
   updateBoard(board, player1next, row, col);
   game.tiles = board;
   game.player1next = !player1next;
@@ -190,36 +220,9 @@ const makeMove = async (req, res, next) => {
   }
 
   res.status(200).json({ game: game.toObject({ getters: true }) });
-
-  // const index = allGameIds.findIndex(x => x === gameId);
-  // if (index === -1) {
-  //   res.json({
-  //     message: `There is no game of ${process.env.gameName} with id=${gameId}`,
-  //   });
-  // } else {
-  //   const mill = allGames[index];
-  //   mill.updateBoard(row, col);
-  //   mill.printBoard();
-
-  //ath hvort valid session
-
-  //sækja stöðuna
-
-  //todo kalla á fallið makemove héðan
-
-  //// TODO: uppfæra gagnagrunninn
-
-  // res.json({
-  //   session: "gae4$Y%%hwghw",
-  //   gameId,
-  //   playerId,
-  //   row1: mill.getRow_i(0),
-  //   row2: mill.getRow_i(1),
-  //   row3: mill.getRow_i(2),
-  // });
 };
 
-exports.home = home;
+exports.allGames = allGames;
 exports.newGame = newGame;
 exports.getGameById = getGameById;
 exports.makeMove = makeMove;
