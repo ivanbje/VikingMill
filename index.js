@@ -16,7 +16,8 @@ app.use(bodyParser.json());
 //Skítmix frá Stackoverflow til að fá ekki error þegar ég reyni að fetcha með React
 app.use(function (req, res, next) {
   // Website you wish to allow to connect
-  res.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
+  res.setHeader("Access-Control-Allow-Origin", ["http://localhost:3000", "https://viking-mill-15192.web.app"]);
+  //res.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
 
   // Request methods you wish to allow
   res.setHeader(
